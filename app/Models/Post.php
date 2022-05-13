@@ -53,4 +53,18 @@ class Post extends Model
     public function getSnippetAttribute(){
         return explode("\n\n", $this->body)[0];
     }
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::deleting(function ($post) {
+            foreach ($post->images as $image){
+                Storage::delete($image->path);
+            }
+        });
+    }
 }
+
