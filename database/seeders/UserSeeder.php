@@ -20,5 +20,6 @@ class UserSeeder extends Seeder
         $user->email=env('USER_EMAIL');
         $user->password = bcrypt(env('USER_PASSWORD'));
         $user->save();
+        User::factory(10)->create();
     }
 }

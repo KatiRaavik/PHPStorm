@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 /**
  * App\Models\User
@@ -36,10 +38,21 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property string $slug
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Comment[] $comments
+ * @property-read int|null $comments_count
+ * @property-read \Illuminate\Database\Eloquent\Collection|User[] $followers
+ * @property-read int|null $followers_count
+ * @property-read \Illuminate\Database\Eloquent\Collection|User[] $follows
+ * @property-read int|null $follows_count
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Post[] $posts
+ * @property-read int|null $posts_count
+ * @property-read \App\Models\profiles|null $profile
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereSlug($value)
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasSlug;
 
     /**
      * The attributes that are mass assignable.
@@ -70,4 +83,47 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get the options for generating the slug.
+     */
+    public function getSlugOptions() : SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('name')
+            ->saveSlugsTo('slug');
+    }
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    public function posts(){
+        return $this->hasMany(Post::class);
+    }
+    public function comments(){
+        return $this->hasMany(Comment::class);
+    }
+
+    public function profile(){
+        return $this->hasOne(profiles::class);
+    }
+
+    public function followers(){
+        return $this->belongsToMany(User::class, 'follow', 'user_id', 'follower_id','id', 'id', 'users');
+    }
+
+    public function follows(){
+        return $this->belongsToMany(User::class, 'follow', 'follower_id', 'user_id', 'id', 'id', 'users');
+    }
+
+    public function getAmFollowingAttribute(){
+        return $this->followers()->where('follower_id', \Auth::user()->id)->exists();
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\profiles;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,8 +16,12 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         // \App\Models\User::factory(10)->create();
+        $this->call(UserSeeder::class);
+        $this->call(ProfilesSeeder::class);
+        $this->call(TagSeeder::class);
         $this->call(PostSeeder::class);
         $this->call(ImageSeeder::class);
-        $this->call(UserSeeder::class);
+        $this->call(CommentSeeder::class);
+
     }
 }
